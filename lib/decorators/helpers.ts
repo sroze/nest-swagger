@@ -52,19 +52,13 @@ export const createMixedDecorator = (metakey, metadata) => {
 
 export const createParamDecorator = (metadata, initial) => {
   return (target, key, descriptor: PropertyDescriptor) => {
-    const parameters =
-      Reflect.getMetadata(DECORATORS.API_PARAMETERS, descriptor.value) || [];
-    Reflect.defineMetadata(
-      DECORATORS.API_PARAMETERS,
-      [
-        ...parameters,
-        {
-          ...initial,
-          ...pickBy(metadata, negate(isUndefined))
-        }
-      ],
-      descriptor.value
-    );
+    mergeParameters(descriptor.value, [
+      {
+        ...initial,
+        ...pickBy(metadata, negate(isUndefined))
+      }
+    ]);
+
     return descriptor;
   };
 };
@@ -86,6 +80,16 @@ export const createMultipleParamDecorator = (multiMetadata: any[], initial) => {
     );
     return descriptor;
   };
+};
+
+const mergeParameters = (parameterHolder: Object, parameters) => {
+  const existingParameters =
+    Reflect.getMetadata(DECORATORS.API_PARAMETERS, parameterHolder) || [];
+  Reflect.defineMetadata(
+    DECORATORS.API_PARAMETERS,
+    [...existingParameters, ...parameters],
+    parameterHolder
+  );
 };
 
 export const getTypeIsArrayTuple = (
